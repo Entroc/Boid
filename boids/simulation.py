@@ -93,20 +93,18 @@ def run():
                         #Adding a boid whenever deleting one obstacle
                         boids.append(create_random_boid(window.width, window.height))
 
-                    if len(obstacles) < 2:
+                    if len(obstacles) < 4:
                         del attractors[0]
                         attractors.append(Attractor(position=[random.uniform(0,window.width) ,random.uniform(0,window.height)]))
-                        for x1 in range(8):
+                        for x1 in range(6):
                             obstacles.append(Obstacle(position=[random.uniform(0,window.width) ,random.uniform(0,window.height)]))
                     break
         #print ("Last death was "+ str(time.time() - last_death) + " seconds ago")
         # Checking time since last death, adding obstacles periodically based on this
-
         try:
-            if time.time() - last_death > 10 and round((time.time() - last_death),0) % 10 == 0:
+            if time.time() - last_death > 20 and round((time.time() - last_death),1) % 10 == 1.1:
                 print ("Adding obstacles ")
                 obstacles.append(Obstacle(position=[random.uniform(0,window.width) ,random.uniform(0,window.height)]))
-                time.sleep(0.1)
         except NameError:
             print ("Last death error")
 
