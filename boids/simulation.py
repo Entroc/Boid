@@ -67,6 +67,7 @@ def run():
        obstacles.append(Obstacle(position=[random.uniform(0,window.width) ,random.uniform(0,window.height)]))
     def update(dt):
         c1 = c2 = 0
+        global last_death
         for boid in boids:
             boid.update(dt, boids, attractors, obstacles)
         for x in reversed(range(len(boids))):
@@ -89,6 +90,7 @@ def run():
                     obstacles[y].hitcount += 1
                     if obstacles[y].hitcount > 4:
                         del obstacles[y]
+                        #Adding a boid whenever deleting one obstacle
                         boids.append(create_random_boid(window.width, window.height))
 
                     if len(obstacles) < 2:
@@ -100,9 +102,12 @@ def run():
         #print ("Last death was "+ str(time.time() - last_death) + " seconds ago")
         # Checking time since last death, adding obstacles periodically based on this
 
-        if time.time() - last_death > 30 and round((time.time() - last_death),0) % 10 == 0:
-            print ("Adding obstacles ")
-            obstacles.append(Obstacle(position=[random.uniform(0,window.width) ,random.uniform(0,window.height)]))
+        try:
+            if time.time() - last_death > 30 and round((time.time() - last_death),0) % 10 == 0:
+                print ("Adding obstacles ")
+                obstacles.append(Obstacle(position=[random.uniform(0,window.width) ,random.uniform(0,window.height)]))
+        except NameError:
+            print ("Last death error")
 
         if len(boids) < 15:
             for t in range(60):
@@ -180,5 +185,4 @@ def run():
     def on_mouse_motion(x, y, *args):
         nonlocal mouse_location
         mouse_location = x, y
-    last_death = 0
     pyglet.app.run()
