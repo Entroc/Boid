@@ -103,9 +103,10 @@ def run():
         # Checking time since last death, adding obstacles periodically based on this
 
         try:
-            if time.time() - last_death > 30 and round((time.time() - last_death),0) % 10 == 0:
+            if time.time() - last_death > 10 and round((time.time() - last_death),0) % 10 == 0:
                 print ("Adding obstacles ")
                 obstacles.append(Obstacle(position=[random.uniform(0,window.width) ,random.uniform(0,window.height)]))
+                time.sleep(0.1)
         except NameError:
             print ("Last death error")
 
