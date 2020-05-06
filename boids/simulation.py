@@ -11,6 +11,7 @@ import time
 from .boid import Boid
 from .attractor import Attractor
 from .obstacle import Obstacle
+from .stats import Stats
 
 
 def create_random_boid(width, height):
@@ -18,7 +19,7 @@ def create_random_boid(width, height):
         position=[random.uniform(0, width), random.uniform(0, height)],
         bounds=[width, height],
         velocity=[random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)],
-        color=[255,0,0],
+        color=[200,0,0],
         time = time.time())
 
 def get_window_config():
@@ -42,15 +43,18 @@ def run():
     boids = []
     attractors = []
     obstacles = []
+    stats = []
+    stats.append(Stats(boids=1,deaths = 0))
+
     print ("SIMULATION STARTED AT " + str(time.time()))
     start_time = time.time()
     mouse_location = (0, 0)
     window = pyglet.window.Window(
-        fullscreen=True,
+        fullscreen=False,
         caption="Boids Simulation",
         config=get_window_config())
-    #window.height = 950
-    #window.width = 1600
+    window.height = 950
+    window.width = 1600
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
@@ -68,6 +72,7 @@ def run():
     def update(dt):
         c1 = c2 = 0
         global last_death
+        stats[0].boids = len(boids)
         for boid in boids:
             boid.update(dt, boids, attractors, obstacles)
         for x in reversed(range(len(boids))):
@@ -78,22 +83,23 @@ def run():
                 c2 = time_alive / 260
             if c2 > 252 and x % 2 == 0:
                obstacles.append(Obstacle(position=[random.uniform(0,window.width) ,random.uniform(0,window.height)]))
-
             boids[x].color = [255,c1,c2]
+
             for y in reversed(range(len(obstacles))):
                 if abs(boids[x].position[0] - obstacles[y].position[0]) < 30.5  and abs(boids[x].position[1] - obstacles[y].position[1]) < 30.5:
                     # Deleting boid due to obstacle collision
                     del boids[x]
+                    stats[0].deaths += 1
                     # Recording death time
                     last_death = time.time()
                     # Add to hitcount, delete obstacle if it takes too much damage
                     obstacles[y].hitcount += 1
-                    if obstacles[y].hitcount > 4:
+                    if obstacles[y].hitcount > 3:
                         del obstacles[y]
                         #Adding a boid whenever deleting one obstacle
                         boids.append(create_random_boid(window.width, window.height))
 
-                    if len(obstacles) < 4:
+                    if len(obstacles) < 8:
                         del attractors[0]
                         attractors.append(Attractor(position=[random.uniform(0,window.width) ,random.uniform(0,window.height)]))
                         for x1 in range(6):
@@ -102,15 +108,16 @@ def run():
         #print ("Last death was "+ str(time.time() - last_death) + " seconds ago")
         # Checking time since last death, adding obstacles periodically based on this
         try:
-            if time.time() - last_death > 20 and round((time.time() - last_death),1) % 10 == 1.1:
+            if time.time() - last_death > 20 and round((time.time() - last_death),1) % 10 == 0.0:
                 print ("Adding obstacles ")
                 obstacles.append(Obstacle(position=[random.uniform(0,window.width) ,random.uniform(0,window.height)]))
         except NameError:
             print ("Last death error")
 
-        if len(boids) < 15:
+        if len(boids) < 65:
             for t in range(60):
                 boids.append(create_random_boid(window.width, window.height))
+
         
 
     # schedule world updates as often as possible
@@ -121,6 +128,12 @@ def run():
         glClearColor(0.1, 0.1, 0.1, 1.0)
         window.clear()
         glLoadIdentity()
+        
+        num_of_boids = pyglet.text.Label("Num of boids:" + str(stats[0].boids),font_size=20)
+        num_of_boids.draw()
+
+        total_deaths = pyglet.text.Label("Total Deaths:"+ str(stats[0].deaths),font_size=20,x=0,y=40)
+        total_deaths.draw()
 
         for boid in boids:
             boid.draw(show_velocity=show_debug, show_view=show_debug, show_vectors=show_vectors)
@@ -170,10 +183,9 @@ def run():
             for obstacle in obstacles:
                 obstacles.pop()
         elif symbol == key.P:
-            print (obstacles[1].position[0])
             for x in range(len(boids)):
-                if boids[x].position[0] == obstacles[1].position[0] and boids[x].position[1] == obstacles[1].position[1]:
-                    boids[x].pop()
+                boids[x].velocity = [0.1,0.1];
+
 
     @window.event
     def on_mouse_drag(x, y, *args):
